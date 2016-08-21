@@ -6,7 +6,7 @@ use yii\db\Migration;
  * Initializes tasks tables
  * @author rossmann-it
  */
-class m160712_111111_taskmanager_init extends Migration {
+class m160712_111111_task_manager_init extends Migration {
 
     /**
      * for Oracle you need to overwrite the typeMap in \yii\db\oci\QueryBuilder
