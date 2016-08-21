@@ -30,7 +30,7 @@ $form        = ActiveForm::begin([]);
         </select>
     </div>
     <?= $form->field($task, 'command')->textInput(['placeholder' => 'Controller::method']) ?>
-    <? $statuses = [
+    <?php $statuses = [
         TaskInterface::TASK_STATUS_ACTIVE   => Yii::t('cron', 'Active'),
         TaskInterface::TASK_STATUS_INACTIVE => Yii::t('cron', 'Inactive'),
     ];
