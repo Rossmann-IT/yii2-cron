@@ -17,16 +17,20 @@ class TaskManager
      * Edit and save TaskInterface object
      *
      * @param TaskInterface $task
-     * @param string        $time
-     * @param string        $command
-     * @param string        $status
-     * @param string        $comment
+     * @param string $time
+     * @param string $command
+     * @param string $status
+     * @param string $comment
      *
      * @return TaskInterface
      */
-    public static function editTask($task, $time, $command, $status = TaskInterface::TASK_STATUS_ACTIVE,
-                                    $comment = null)
-    {
+    public static function editTask(
+        $task,
+        $time,
+        $command,
+        $status = TaskInterface::TASK_STATUS_ACTIVE,
+        $comment = null
+    ) {
         if (!$validatedCommand = self::validateCommand($command)) {
             return $task;
         }
@@ -80,7 +84,12 @@ class TaskManager
             // trim params and strip quotes
             foreach ($params as &$param) {
                 $param = trim($param);
-                if (($param[0] == "'" AND substr($param, -1) == "'") OR ($param[0] == '"' AND substr($param, -1) == '"')) {
+                if (empty($param)) {
+                    continue;
+                }
+                if (($param[0] == "'" AND substr($param, -1) == "'") OR ($param[0] == '"' AND substr($param,
+                            -1) == '"')
+                ) {
                     $param = substr($param, 1, -1);
                 }
             }
@@ -102,7 +111,7 @@ class TaskManager
     /**
      * Parses each line of crontab content and creates new TaskInterface objects
      *
-     * @param string        $cron
+     * @param string $cron
      * @param TaskInterface $taskClass
      *
      * @return array
@@ -110,7 +119,7 @@ class TaskManager
     public static function parseCrontab($cron, $taskClass)
     {
         $cronArray = explode(PHP_EOL, $cron);
-        $tasks      = [];
+        $tasks = [];
         foreach ($cronArray as $cronElement) {
             $cronElement = trim($cronElement);
             if (empty($cronElement)) {
@@ -121,8 +130,8 @@ class TaskManager
                 try {
                     CronExpression::factory($matches[2]);
                 } catch (\Exception $e) {
-                    $task[1]     = \Yii::t('cron', 'Time expression is not valid');
-                    $task[2]     = $matches[2];
+                    $task[1] = \Yii::t('cron', 'Time expression is not valid');
+                    $task[2] = $matches[2];
                     $tasks[] = $task;
                     continue;
                 }
@@ -134,8 +143,8 @@ class TaskManager
                 $comment = null;
             } elseif (preg_match('/#([\w\d\s]+)/i', $cronElement, $matches)) {
                 $comment = trim($matches[1]);
-                $task[1]   = \Yii::t('cron', 'Comment');
-                $task[2]   = $comment;
+                $task[1] = \Yii::t('cron', 'Comment');
+                $task[2] = $comment;
             } else {
                 $task[1] = \Yii::t('cron', 'Not matched');
             }
@@ -149,8 +158,8 @@ class TaskManager
      * Creates new TaskInterface object from parsed crontab line
      *
      * @param TaskInterface $taskClass
-     * @param array         $matches
-     * @param string        $comment
+     * @param array $matches
+     * @param string $comment
      *
      * @return TaskInterface
      */
@@ -159,7 +168,7 @@ class TaskManager
         $task = $taskClass::createNew();
         $task->setTime(trim($matches[2]));
         $arguments = str_replace(' ', ',', trim($matches[5]));
-        $command   = ucfirst($matches[3]) . '::' . $matches[4] . '(' . $arguments . ')';
+        $command = ucfirst($matches[3]) . '::' . $matches[4] . '(' . $arguments . ')';
         $task->setCommand($command);
         if (!empty($comment)) {
             $task->setComment($comment);
@@ -177,15 +186,15 @@ class TaskManager
      * Formats task for export into crontab file
      *
      * @param TaskInterface $task
-     * @param string        $path
-     * @param string        $phpBin
-     * @param string        $inputFile
+     * @param string $path
+     * @param string $phpBin
+     * @param string $inputFile
      *
      * @return string
      */
     public static function getTaskCrontabLine($task, $path, $phpBin, $inputFile)
     {
-        $str     = '';
+        $str = '';
         $comment = $task->getComment();
         if (!empty($comment)) {
             $str .= '#' . $comment;
