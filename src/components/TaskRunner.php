@@ -136,7 +136,13 @@ class TaskRunner
                 TaskLoader::loadController($class);
             }
 
-            $obj = new $class();
+            $reflection = new \ReflectionClass($class);
+            if ($reflection->getParentClass()->name === 'yii\console\Controller') {
+                $obj = \Yii::createObject($class, ['crontask', \Yii::$app->controller->module->id]);
+            } else {
+                $obj = new $class;
+            }
+
             if (!method_exists($obj, $method)) {
                 throw new TaskManagerException('method ' . $method . ' not found in class ' . $class);
             }
