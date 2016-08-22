@@ -1,13 +1,13 @@
 <?php
 namespace rossmann\cron\controllers;
 
-use rossmann\cron\models\Task;
-use rossmann\cron\models\TaskRun;
 use rossmann\cron\assets\TasksAsset;
 use rossmann\cron\components\TaskInterface;
 use rossmann\cron\components\TaskLoader;
 use rossmann\cron\components\TaskManager;
 use rossmann\cron\components\TaskRunner;
+use rossmann\cron\models\Task;
+use rossmann\cron\models\TaskRun;
 use yii\helpers\Url;
 use yii\web\Controller;
 
@@ -32,14 +32,14 @@ class TasksController extends Controller
     {
         parent::__construct($id, $module, $config);
         self::$tasksControllersFolder = $module->tasksControllersFolder;
-        self::$tasksNamespace         = $module->tasksNamespace;
+        self::$tasksNamespace = $module->tasksNamespace;
         TasksAsset::register($this->view);
     }
 
     public function actionIndex()
     {
         return $this->render('tasks_list', [
-            'tasks'   => Task::getList(),
+            'tasks' => Task::getList(),
             'methods' => TaskLoader::getAllMethods(self::$tasksControllersFolder, self::$tasksNamespace),
         ]);
     }
@@ -62,7 +62,7 @@ class TasksController extends Controller
     {
         $folder = \Yii::$app->request->post('folder');
         if ($folder) {
-            $tasks  = Task::getList();
+            $tasks = Task::getList();
             $result = [];
             foreach ($tasks as $t) {
                 $line = TaskManager::getTaskCrontabLine(
@@ -84,7 +84,7 @@ class TasksController extends Controller
     public function actionTaskLog()
     {
         $taskId = \Yii::$app->request->get('id');
-        $runs   = TaskRun::getLastRuns($taskId, 30);
+        $runs = TaskRun::getLastRuns($taskId, 30);
 
         return $this->render('runs_list', ['runs' => $runs]);
     }
@@ -118,14 +118,16 @@ class TasksController extends Controller
      */
     public function actionGetDates()
     {
-        $time  = \Yii::$app->request->post('time');
+        $time = \Yii::$app->request->post('time');
         if (empty($time)) {
             echo 'n/a';
+
             return;
         }
         $dates = TaskRunner::getRunDates($time);
         if (empty($dates)) {
             echo \Yii::t('cron', 'Invalid expression');
+
             return;
         }
         echo '<ul>';
@@ -177,11 +179,12 @@ class TasksController extends Controller
                 $post['Task']['comment']
             );
             \Yii::$app->session->setFlash('success', \Yii::t('cron', 'The task has been saved'));
+
             return \Yii::$app->response->redirect(Url::toRoute(['index']));
         }
 
         return $this->render('task_edit', [
-            'task'    => $task,
+            'task' => $task,
             'methods' => TaskLoader::getAllMethods(self::$tasksControllersFolder, self::$tasksNamespace),
         ]);
     }
@@ -195,9 +198,9 @@ class TasksController extends Controller
         $taskIds = \Yii::$app->request->post('id');
         $mode = \Yii::$app->request->post('mode');
         $modes = [
-            'Enable'  => TaskInterface::TASK_STATUS_ACTIVE,
+            'Enable' => TaskInterface::TASK_STATUS_ACTIVE,
             'Disable' => TaskInterface::TASK_STATUS_INACTIVE,
-            'Delete'  => TaskInterface::TASK_STATUS_DELETED,
+            'Delete' => TaskInterface::TASK_STATUS_DELETED,
         ];
         if ($taskIds AND isset($modes[$mode])) {
             $tasks = Task::findAll($taskIds);
@@ -209,23 +212,26 @@ class TasksController extends Controller
             }
             \Yii::$app->session->setFlash(
                 $numUpdated ? 'success' : 'warning',
-                \Yii::t('cron', '{n,plural,=0{no tasks have} =1{one task has} other{# tasks have}} been updated', ['n' => $numUpdated]),
+                \Yii::t('cron', '{n,plural,=0{no tasks have} =1{one task has} other{# tasks have}} been updated',
+                    ['n' => $numUpdated]),
                 false
             );
+
             return "";
         }
+
         return \Yii::$app->response->redirect(Url::toRoute(['index']));
     }
 
     public function actionTasksReport()
     {
         $dateBegin = \Yii::$app->request->get('date_begin', date('Y-m-d', strtotime('-6 day')));
-        $dateEnd   = \Yii::$app->request->get('date_end', date('Y-m-d'));
+        $dateEnd = \Yii::$app->request->get('date_end', date('Y-m-d'));
 
         return $this->render('report', [
-            'report'     => Task::getReport($dateBegin, $dateEnd, $this->module->sqlDialect),
+            'report' => Task::getReport($dateBegin, $dateEnd, $this->module->sqlDialect),
             'dateBegin' => $dateBegin,
-            'dateEnd'   => $dateEnd,
+            'dateEnd' => $dateEnd,
         ]);
     }
 }

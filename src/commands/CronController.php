@@ -5,8 +5,8 @@
  */
 namespace rossmann\cron\commands;
 
-use rossmann\cron\models\Task;
 use rossmann\cron\components\TaskRunner;
+use rossmann\cron\models\Task;
 use yii\console\Controller;
 
 class CronController extends Controller

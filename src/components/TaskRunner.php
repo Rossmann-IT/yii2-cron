@@ -83,10 +83,11 @@ class TaskRunner
                 static::log('error', $errorMessage);
             } else {
                 $errorMessage = 'Task with ID ' . $task->getId() . ' cannot be run because a lock could not be acquired '
-                . 'although the last run is marked as completed. If you see this message only once, the reason might be '
-                . 'a race condition, in that case no action is required.';
+                    . 'although the last run is marked as completed. If you see this message only once, the reason might be '
+                    . 'a race condition, in that case no action is required.';
                 static::log('error', $errorMessage);
             }
+
             return $errorMessage;
         }
 
@@ -102,7 +103,8 @@ class TaskRunner
             }
         } catch (\Exception $e) {
             $runFinalStatus = TaskRunInterface::RUN_STATUS_ERROR;
-            static::log('error', 'Exception while running task with ID ' . $task->getId() . ': ' . get_class($e) . PHP_EOL . $e->getMessage());
+            static::log('error',
+                'Exception while running task with ID ' . $task->getId() . ': ' . get_class($e) . PHP_EOL . $e->getMessage());
         }
 
         $output = ob_get_clean();
@@ -111,7 +113,7 @@ class TaskRunner
         $run->setStatus($runFinalStatus);
 
         $timeEnd = microtime(true);
-        $time    = round(($timeEnd - $timeBegin), 2);
+        $time = round(($timeEnd - $timeBegin), 2);
         $run->setExecutionTime($time);
 
         $run->saveTaskRun();
@@ -119,6 +121,15 @@ class TaskRunner
         $task->releaseLock();
 
         return $output;
+    }
+
+    /**
+     * @param string $level
+     * @param string $message
+     */
+    protected static function log($level, $message)
+    {
+        \Yii::$level($message);
     }
 
     /**
@@ -147,12 +158,14 @@ class TaskRunner
                 throw new TaskManagerException('method ' . $method . ' not found in class ' . $class);
             }
             $result = call_user_func_array([$obj, $method], $args);
+
             return $result;
 
         } catch (\Exception $e) {
             static::log('error', 'Exception while executing the task command: ' . get_class($e) . ': '
                 . PHP_EOL . $e->getMessage() . PHP_EOL . $e->getTraceAsString()
             );
+
             return false;
         }
     }
@@ -161,28 +174,20 @@ class TaskRunner
      * Returns next run dates for time expression
      *
      * @param string $time
-     * @param int    $count
+     * @param int $count
      *
      * @return array
      */
     public static function getRunDates($time, $count = 10)
     {
         try {
-            $cron  = CronExpression::factory($time);
+            $cron = CronExpression::factory($time);
             $dates = $cron->getMultipleRunDates($count);
         } catch (\Exception $e) {
             return [];
         }
 
         return $dates;
-    }
-
-    /**
-     * @param string $level
-     * @param string $message
-     */
-    protected static function log($level, $message) {
-        \Yii::$level($message);
     }
 
 }

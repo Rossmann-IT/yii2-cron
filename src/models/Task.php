@@ -12,7 +12,7 @@ use yii\db\ActiveRecord;
  * @author rossmann-it
  * @since 20.12.2015
  *
- * @property int    $id
+ * @property int $id
  * @property string $time
  * @property string $command
  * @property string $status
@@ -23,31 +23,6 @@ use yii\db\ActiveRecord;
  */
 class Task extends ActiveRecord implements TaskInterface
 {
-
-    /**
-     * @return array
-     */
-    public function attributeLabels() {
-        return [
-            'id' => \Yii::t('cron', 'ID'),
-            'time' => \Yii::t('cron', 'Time expression'),
-            'command' => \Yii::t('cron', 'Command'),
-            'status' => \Yii::t('cron', 'Status'),
-            'comments' => \Yii::t('cron', 'Comment'),
-            'comment' => \Yii::t('cron', 'Comment'),
-            'ts' => \Yii::t('cron', 'Created'),
-            'ts_updated' => \Yii::t('cron', 'Updated'),
-            'locked' => \Yii::t('cron', 'Locked'),
-        ];
-    }
-
-    /**
-     * @return string
-     */
-    public static function tableName()
-    {
-        return '{{%tasks}}';
-    }
 
     /**
      * @param int $taskId
@@ -101,7 +76,7 @@ class Task extends ActiveRecord implements TaskInterface
 
         return \Yii::$app->db->createCommand($sql, [
             ':date_begin' => $dateBegin,
-            ':date_end'   => $dateEnd,
+            ':date_end' => $dateEnd,
         ])->queryAll();
     }
 
@@ -110,7 +85,8 @@ class Task extends ActiveRecord implements TaskInterface
      * @param string $sqlDialect
      * @return string
      */
-    protected static function getDateConstraint($sqlDialect = CronModule::DIALECT_MYSQL) {
+    protected static function getDateConstraint($sqlDialect = CronModule::DIALECT_MYSQL)
+    {
         switch ($sqlDialect) {
             case CronModule::DIALECT_MYSQL:
                 $constraint = 'tr.ts BETWEEN :date_begin AND :date_end + INTERVAL 1 DAY';
@@ -122,7 +98,34 @@ class Task extends ActiveRecord implements TaskInterface
             default:
                 throw new \InvalidArgumentException('SQL Dialect "' . $sqlDialect . '" is not implemented in ' . __METHOD__);
         }
+
         return $constraint;
+    }
+
+    /**
+     * @return Task
+     */
+    public static function createNew()
+    {
+        return new self();
+    }
+
+    /**
+     * @return array
+     */
+    public function attributeLabels()
+    {
+        return [
+            'id' => \Yii::t('cron', 'ID'),
+            'time' => \Yii::t('cron', 'Time expression'),
+            'command' => \Yii::t('cron', 'Command'),
+            'status' => \Yii::t('cron', 'Status'),
+            'comments' => \Yii::t('cron', 'Comment'),
+            'comment' => \Yii::t('cron', 'Comment'),
+            'ts' => \Yii::t('cron', 'Created'),
+            'ts_updated' => \Yii::t('cron', 'Updated'),
+            'locked' => \Yii::t('cron', 'Locked'),
+        ];
     }
 
     /**
@@ -154,20 +157,13 @@ class Task extends ActiveRecord implements TaskInterface
     }
 
     /**
-     * @return Task
-     */
-    public static function createNew()
-    {
-        return new self();
-    }
-
-    /**
      * @return TaskRunInterface
      */
     public function createTaskRun()
     {
         $taskRun = new TaskRun();
         $taskRun->setTaskId($this->id);
+
         return $taskRun;
     }
 
@@ -278,14 +274,16 @@ class Task extends ActiveRecord implements TaskInterface
     /**
      * @return bool
      */
-    public function isLocked() {
-        return (bool) $this->locked;
+    public function isLocked()
+    {
+        return (bool)$this->locked;
     }
 
     /**
      * sets the locked flag to 0 in the database
      */
-    public function releaseLock() {
+    public function releaseLock()
+    {
         $this->locked = 0;
         $this->update();
     }
@@ -293,7 +291,8 @@ class Task extends ActiveRecord implements TaskInterface
     /**
      * @param int|bool $locked
      */
-    public function setLocked($locked) {
+    public function setLocked($locked)
+    {
         $this->locked = intval($locked);
     }
 
@@ -301,7 +300,8 @@ class Task extends ActiveRecord implements TaskInterface
      * @return bool
      * @throws \Exception
      */
-    public function acquireLock() {
+    public function acquireLock()
+    {
         if (!$this->id) {
             throw new \LogicException('Task ID must be set to acquire a lock');
         }
@@ -310,7 +310,7 @@ class Task extends ActiveRecord implements TaskInterface
         try {
             // get the current lock status and lock the row in the database
             $query = $db->createCommand(
-                'SELECT locked FROM ' . self::tableName(). ' WHERE id = :id'. ' FOR UPDATE',
+                'SELECT locked FROM ' . self::tableName() . ' WHERE id = :id' . ' FOR UPDATE',
                 [':id' => $this->id]
             );
             $locked = $query->queryScalar();
@@ -320,6 +320,7 @@ class Task extends ActiveRecord implements TaskInterface
                 $transaction->commit();
                 $this->locked = 1;
                 \Yii::info('Tried to acquire a lock for the task with ID ' . $this->id . ', but it is already/still locked');
+
                 return false;
             } elseif ($locked === 0 OR $locked === '0') {
                 // task was found and is not locked
@@ -332,6 +333,7 @@ class Task extends ActiveRecord implements TaskInterface
                 } else {
                     // affected rows not > 0
                     \Yii::error('Tried to lock the task with ID ' . $this->id . ', but the database reported zero affected rows');
+
                     return false;
                 }
             } else {
@@ -339,12 +341,21 @@ class Task extends ActiveRecord implements TaskInterface
                 $transaction->commit();
                 \Yii::error('Tried to look up the lock status of the task with ID ' . $this->id
                     . ', but a value other than 0/1 or no value was returned: "' . $locked . '"');
+
                 return false;
             }
         } catch (\Exception $e) {
             $transaction->rollBack();
             throw $e;
         }
+    }
+
+    /**
+     * @return string
+     */
+    public static function tableName()
+    {
+        return '{{%tasks}}';
     }
 
 }
