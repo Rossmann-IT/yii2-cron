@@ -10,9 +10,9 @@ namespace rossmann\cron\components;
  */
 interface TaskInterface
 {
-    const TASK_STATUS_ACTIVE   = 'active';
+    const TASK_STATUS_ACTIVE = 'active';
     const TASK_STATUS_INACTIVE = 'inactive';
-    const TASK_STATUS_DELETED  = 'deleted';
+    const TASK_STATUS_DELETED = 'deleted';
 
     /**
      * Returns tasks with given id

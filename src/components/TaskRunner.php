@@ -109,6 +109,7 @@ class TaskRunner
                     . 'a race condition, in that case no action is required.';
                 static::log('error', $errorMessage);
             }
+
             return $errorMessage;
         }
 
@@ -124,7 +125,8 @@ class TaskRunner
             }
         } catch (\Exception $e) {
             $runFinalStatus = TaskRunInterface::RUN_STATUS_ERROR;
-            static::log('error', 'Exception while running task with ID ' . $task->getId() . ': ' . get_class($e) . PHP_EOL . $e->getMessage());
+            static::log('error',
+                'Exception while running task with ID ' . $task->getId() . ': ' . get_class($e) . PHP_EOL . $e->getMessage());
         }
 
         $output = ob_get_clean();
@@ -133,7 +135,7 @@ class TaskRunner
         $run->setStatus($runFinalStatus);
 
         $timeEnd = microtime(true);
-        $time    = round(($timeEnd - $timeBegin), 2);
+        $time = round(($timeEnd - $timeBegin), 2);
         $run->setExecutionTime($time);
 
         try {
@@ -158,6 +160,15 @@ class TaskRunner
     }
 
     /**
+     * @param string $level
+     * @param string $message
+     */
+    protected static function log($level, $message)
+    {
+        \Yii::$level($message);
+    }
+
+    /**
      * Parses given command, creates new class object and calls its method via call_user_func_array
      *
      * @param string $command
@@ -172,17 +183,25 @@ class TaskRunner
                 TaskLoader::loadController($class);
             }
 
-            $obj = new $class();
+            $reflection = new \ReflectionClass($class);
+            if ($reflection->getParentClass()->name === 'yii\console\Controller') {
+                $obj = \Yii::createObject($class, ['crontask', \Yii::$app->controller->module->id]);
+            } else {
+                $obj = new $class;
+            }
+
             if (!method_exists($obj, $method)) {
                 throw new TaskManagerException('method ' . $method . ' not found in class ' . $class);
             }
             $result = call_user_func_array([$obj, $method], $args);
+
             return $result;
 
         } catch (\Exception $e) {
             static::log('error', 'Exception while executing the task command: ' . get_class($e) . ': '
                 . PHP_EOL . $e->getMessage() . PHP_EOL . $e->getTraceAsString()
             );
+
             return false;
         }
     }
@@ -191,28 +210,20 @@ class TaskRunner
      * Returns next run dates for time expression
      *
      * @param string $time
-     * @param int    $count
+     * @param int $count
      *
      * @return array
      */
     public static function getRunDates($time, $count = 10)
     {
         try {
-            $cron  = CronExpression::factory($time);
+            $cron = CronExpression::factory($time);
             $dates = $cron->getMultipleRunDates($count);
         } catch (\Exception $e) {
             return [];
         }
 
         return $dates;
-    }
-
-    /**
-     * @param string $level
-     * @param string $message
-     */
-    protected static function log($level, $message) {
-        \Yii::$level($message);
     }
 
 }

@@ -28,7 +28,7 @@ class TaskLoader
     {
         self::setClassFolder($folder);
         $namespacesList = is_array($namespace) ? $namespace : [$namespace];
-        $methods         = [];
+        $methods = [];
 
         $controllers = self::getControllersList(self::$classFolders, $namespacesList);
         foreach ($controllers as $c) {
@@ -72,7 +72,7 @@ class TaskLoader
             $files = scandir($path);
             foreach ($files as $file) {
                 if (preg_match('/^([A-Z]\w+)\.php$/', $file, $match)) {
-                    $namespace     = isset($namespacesList[$pathIndex]) ? $namespacesList[$pathIndex] . '\\' : '';
+                    $namespace = isset($namespacesList[$pathIndex]) ? $namespacesList[$pathIndex] . '\\' : '';
                     $controllers[] = $namespace . $match[1];
                 }
             }
@@ -91,7 +91,7 @@ class TaskLoader
     public static function loadController($className)
     {
         foreach (self::$classFolders as $f) {
-            $f        = rtrim($f, '/');
+            $f = rtrim($f, '/');
             $filename = $f . '/' . $className . '.php';
             if (file_exists($filename)) {
                 require_once $filename;

@@ -9,9 +9,9 @@ namespace rossmann\cron\components;
  */
 interface TaskRunInterface
 {
-    const RUN_STATUS_STARTED   = 'started';
+    const RUN_STATUS_STARTED = 'started';
     const RUN_STATUS_COMPLETED = 'completed';
-    const RUN_STATUS_ERROR     = 'error';
+    const RUN_STATUS_ERROR = 'error';
 
     /**
      * Saves the task run

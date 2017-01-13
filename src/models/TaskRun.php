@@ -10,23 +10,15 @@ use yii\db\Query;
  * @author rossmann-it
  * @since 20.12.2015
  *
- * @property int    $id
- * @property int    $task_id
+ * @property int $id
+ * @property int $task_id
  * @property string $status
  * @property string $output
- * @property int    $execution_time
+ * @property int $execution_time
  * @property string $ts
  */
 class TaskRun extends ActiveRecord implements TaskRunInterface
 {
-    /**
-     * @return string
-     */
-    public static function tableName()
-    {
-        return '{{%task_runs}}';
-    }
-
     /**
      * @param int $taskId
      * @param int $count
@@ -48,13 +40,23 @@ class TaskRun extends ActiveRecord implements TaskRunInterface
     }
 
     /**
+     * @return string
+     */
+    public static function tableName()
+    {
+        return '{{%task_runs}}';
+    }
+
+    /**
      * @param int $taskId
      * @return null|TaskRun
      */
-    public static function getLast($taskId) {
+    public static function getLast($taskId)
+    {
         $last = self::find()
             ->where('task_id = :task_id', [':task_id' => $taskId])
             ->orderBy('id DESC')->one();
+
         return $last;
     }
 
